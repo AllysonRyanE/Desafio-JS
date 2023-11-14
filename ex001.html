@@ -1,0 +1,168 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel = "stylesheet" href = "style.css">
+    <title>CinLivros</title>
+    <style>
+    h1, h2{
+    text-align: center;
+    }
+    .inbox{
+        background-color: rgba(255, 255, 255, 0.849);
+        box-shadow: 3px 5px 15px #3c4a72a6;
+        border-radius: 10px;
+        width: 850px;
+        padding: 10px;
+        margin: auto;
+        margin-top: 5px;
+        margin-bottom: 5px;
+    }
+    p{
+        text-align: justify;
+        text-indent: 8px;
+    }
+    body{
+        background-image: linear-gradient(to right, #2F3A59, #242d449a);
+        color: black;
+        font-family: 'DM Sans', Helvetica, sans-serif;
+        font-size: 1,5em;
+        background-attachment: fixed;
+    }
+    </style>
+</head>
+<body> 
+    <header class="inbox">
+        <h1>CinLivros</h1>
+    </header>
+    <main class="inbox">
+        <form id="form">
+            <p>Titulo:</p>
+            <input type="text" name = "title" id="idTitle">
+            <p>Autor:</p>
+            <input type="text" name = "author" id="idAuthor">
+            <p>Sinopse:</p>
+            <input type="text" name = "description" id="idDesc">
+            <button type="button" name = "button_add" id = "idButtonAdd" onclick="create()">Adicionar</button>
+            <button type="button" name = "button_edit" id = "idButtonEdt" onclick="FormEdit()">Editar</button>
+            <input type= "hidden" id="ID_hidden">
+            <h2>Livraria:</h2>
+            <ul id = "lista_lib"></ul>
+        </form>
+        <script>
+            class Books{
+            constructor(title, author, description){
+                this._title = title
+                this._author = author
+                this._description= description
+            }
+            }
+            class Libraries{
+            constructor(){
+                localStorage.getItem('elements')? this._elements = JSON.parse(localStorage.getItem('elements')) : this._elements = []
+            }
+            add(adicionado){
+                const unit = new Books(adicionado._title, adicionado._author, adicionado._description)
+                this._elements.push(unit)
+                this.save()
+            }
+            viewList(){
+                return this._elements
+            }
+            viewOne(id_procurado){
+                return this._elements.find(function(livro){
+                    return livro.id === id_procurado
+                })
+            }
+            edit(id_editado, novas_info){
+                const procurado = viewOne(id_editado)
+                if(procurado){
+                    procurado.title = novas_info.title ? novas_info.title : procurado.title
+                    procurado.description = novas_info.description ? novas_info.description : procurado.description
+                    procurado.author = novas_info.author ? novas_info.author : procurado.author
+                    this.save()
+                }
+                return procurado
+            }
+            delete(index) {
+                this._elements.splice(index, 1)
+                this.save()
+            }
+            save(){
+                localStorage.setItem('library', JSON.stringify(this.elements))
+            }
+            }
+            let livraria = new Libraries()
+            let formulario = document.getElementById("form")
+            let biblioteca = document.getElementById("lista_lib")
+            function create()
+            {
+                let titulo = document.getElementById("idTitle").value
+                let autor = document.getElementById("idAuthor").value
+                let desc = document.getElementById("idDesc").value
+                let livro = new Books(titulo, autor, desc)
+                livraria.add(livro)
+                update_Interface()
+                formulario.reset()
+            }
+            function update(){
+                let titulo = document.getElementById("idTitle").value
+                let autor = document.getElementById("idAuthor").value
+                let desc = document.getElementById("idDesc").value
+                let hidden = document.getElementById('ID_hidden').value
+                if (hidden) {
+                    Libraries.edit(hidden, { title, description, author })
+                }
+            }
+            function update_Interface() {
+                const listaLivros = document.getElementById('lista_lib')
+                listaLivros.innerHTML = ''
+
+                const livros = livraria.viewList()
+
+                livros.forEach((livro, index) => {
+                    const listItem = document.createElement('li')
+                    listItem.textContent = `${livro._title} de ${livro._author}; ${livro._description}`
+
+                    const editButton = document.createElement('button')
+                    editButton.textContent = 'Editar'
+                    editButton.type = 'button' 
+                    editButton.onclick = function() {
+                        event.stopPropagation()
+                        FormEdit(index)
+                    }
+
+                    const deleteButton = document.createElement('button')
+                    deleteButton.textContent = 'Excluir'
+                    editButton.type = 'button'
+                    deleteButton.onclick = function() {
+                        event.stopPropagation()
+                        livraria.delete(index)
+                        update_Interface()
+                    }
+
+                    listItem.appendChild(editButton)
+                    listItem.appendChild(deleteButton)
+
+                    listaLivros.appendChild(listItem)
+                })
+            }
+
+            function FormEdit(index) {
+                const livro = livraria.viewList()[index]
+                if (livro) {
+                    document.getElementById('idTitle').value = livro._title
+                    document.getElementById('idAuthor').value = livro._author
+                    document.getElementById('idDesc').value = livro._description
+                    document.getElementById('ID_hidden').value = index
+                } else {
+                    alert('Livro não encontrado.')
+                }
+            }
+
+
+        </script>
+    </main>
+</body>
+</html>
